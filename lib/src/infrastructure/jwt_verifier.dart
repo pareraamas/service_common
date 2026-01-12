@@ -92,7 +92,7 @@ class JwtVerifier {
     }
 
     try {
-      final url = Uri.parse('$_masterAuthUrl/apiv1/.well-known/jwks.json');
+      final url = Uri.parse('$_masterAuthUrl/.well-known/jwks.json');
       _logger.info('Fetching JWKS from $url');
 
       final response = await http.get(url);
