@@ -26,7 +26,7 @@ class DatabaseProvider {
     final poolSize = int.tryParse(_env['DB_POOL_SIZE'] ?? '10') ?? 10;
     final autoMigrate =
         (_env['DB_AUTO_MIGRATE'] ?? 'true').toLowerCase() == 'true';
-    final secure = (_env['DB_SECURE'] ?? 'false').toLowerCase() == 'true';
+    final secure = (_env['DB_SECURE'] ?? 'true').toLowerCase() == 'true';
 
     _logger.info('Initializing Database Pool ($host:$port/$dbName)...');
 
