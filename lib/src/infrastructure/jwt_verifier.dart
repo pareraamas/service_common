@@ -15,7 +15,7 @@ class JwtVerifier {
   static JwtVerifier get instance => _instance;
 
   final Logger _logger = Logger('JwtVerifier');
-  final DotEnv _env = DotEnv(includePlatformEnvironment: true)..load();
+  final DotEnv _env = DotEnv(includePlatformEnvironment: true, quiet: true)..load();
 
   String? _masterAuthUrl;
 

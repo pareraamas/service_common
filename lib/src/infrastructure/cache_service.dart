@@ -17,7 +17,7 @@ class CacheService {
   static final CacheService _instance = CacheService._internal();
   static CacheService get instance => _instance;
 
-  final DotEnv _env = DotEnv(includePlatformEnvironment: true)..load();
+  final DotEnv _env = DotEnv(includePlatformEnvironment: true, quiet: true)..load();
   final Logger _logger = Logger('CacheService');
 
   // Redis components

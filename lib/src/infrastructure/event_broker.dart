@@ -9,7 +9,7 @@ class EventBroker {
   static final EventBroker _instance = EventBroker._internal();
   static EventBroker get instance => _instance;
 
-  final DotEnv _env = DotEnv(includePlatformEnvironment: true)..load();
+  final DotEnv _env = DotEnv(includePlatformEnvironment: true, quiet: true)..load();
   final Logger _logger = Logger('EventBroker');
 
   // Connection for Publishing (can be shared for general commands)

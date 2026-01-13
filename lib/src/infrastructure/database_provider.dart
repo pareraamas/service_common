@@ -11,7 +11,7 @@ class DatabaseProvider {
 
   MySQLConnectionPool? _pool;
   final Logger _logger = Logger('DatabaseProvider');
-  final DotEnv _env = DotEnv(includePlatformEnvironment: true)..load();
+  final DotEnv _env = DotEnv(includePlatformEnvironment: true, quiet: true)..load();
 
   Future<void> initialize() async {
     if (_pool != null) {
