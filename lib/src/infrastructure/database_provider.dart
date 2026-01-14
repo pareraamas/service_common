@@ -24,24 +24,12 @@ class DatabaseProvider {
     final password = _env['DB_PASSWORD'] ?? '';
     final dbName = _env['DB_NAME'] ?? 'master_service';
     final poolSize = int.tryParse(_env['DB_POOL_SIZE'] ?? '10') ?? 10;
-    final autoMigrate =
-        (_env['DB_AUTO_MIGRATE'] ?? 'true').toLowerCase() == 'true';
+    final autoMigrate = (_env['DB_AUTO_MIGRATE'] ?? 'true').toLowerCase() == 'true';
     final secure = (_env['DB_SECURE'] ?? 'true').toLowerCase() == 'true';
 
     _logger.info('Initializing Database Pool ($host:$port/$dbName)...');
 
     try {
-      if (autoMigrate) {
-        await _createDatabaseIfNotExists(
-          host,
-          port,
-          user,
-          password,
-          dbName,
-          secure,
-        );
-      }
-
       _pool = MySQLConnectionPool(
         host: host,
         port: port,
@@ -63,68 +51,52 @@ class DatabaseProvider {
     }
   }
 
-  Future<void> _createDatabaseIfNotExists(
-    String host,
-    int port,
-    String user,
-    String password,
-    String dbName,
-    bool secure,
-  ) async {
-    _logger.info('Checking if database "$dbName" exists...');
-    final conn = await MySQLConnection.createConnection(
-      host: host,
-      port: port,
-      userName: user,
-      password: password,
-      databaseName: 'mysql',
-      secure: secure,
-    );
-
-    try {
-      await conn.connect();
-      await conn.execute('CREATE DATABASE IF NOT EXISTS $dbName');
-      _logger.info('Database "$dbName" checked/created.');
-    } catch (e) {
-      _logger.warning('Failed to create database automatically: $e');
-    } finally {
-      await conn.close();
-    }
-  }
-
   Future<void> _runMigration() async {
-    _logger.info('Checking for migrations...');
-    final file = File('scripts/migration.sql');
+    _logger.info('Checking for migrations in scripts/ directory...');
+    final dir = Directory('scripts');
 
-    if (!file.existsSync()) {
+    if (!dir.existsSync()) {
       _logger.warning(
-        'Migration file not found at ${file.path}. Skipping migration.',
+        'Scripts directory not found at ${dir.path}. Skipping migration.',
       );
       return;
     }
 
     try {
-      final sqlContent = await file.readAsString();
-      final statements = sqlContent
-          .split(';')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
+      final List<FileSystemEntity> entities = await dir.list().toList();
+      final List<File> migrationFiles = entities.whereType<File>().where((f) => f.path.endsWith('.sql')).toList();
 
-      if (statements.isEmpty) {
-        _logger.info('No migration statements found.');
+      // Sort files alphabetically to ensure execution order (e.g. v1 before v2)
+      migrationFiles.sort((a, b) => a.path.compareTo(b.path));
+
+      if (migrationFiles.isEmpty) {
+        _logger.info('No .sql migration files found.');
         return;
       }
 
-      _logger.info('Applying ${statements.length} migration statements...');
+      _logger.info(
+        'Found ${migrationFiles.length} migration files. Starting execution...',
+      );
 
-      for (final sql in statements) {
-        if (sql.startsWith('--') && !sql.contains('\n')) {
+      for (final file in migrationFiles) {
+        _logger.info('Applying migration file: ${file.path}');
+        final sqlContent = await file.readAsString();
+        final statements = sqlContent.split(';').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+
+        if (statements.isEmpty) {
+          _logger.info('File ${file.path} is empty or has no statements.');
           continue;
         }
-        await _pool!.execute(sql);
+
+        for (final sql in statements) {
+          if (sql.startsWith('--') && !sql.contains('\n')) {
+            continue;
+          }
+          await _pool!.execute(sql);
+        }
+        _logger.info('Applied ${file.path} successfully.');
       }
-      _logger.info('Migration applied successfully.');
+      _logger.info('All migrations applied successfully.');
     } catch (e) {
       _logger.severe('Error applying migration', e);
       throw Exception('Migration failed: $e');
