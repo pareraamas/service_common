@@ -53,7 +53,7 @@ class DatabaseProvider {
 
   Future<void> _runMigration() async {
     _logger.info('Checking for migrations in scripts/ directory...');
-    final dir = Directory('scripts');
+    final dir = Directory('/app/scripts');
 
     if (!dir.existsSync()) {
       _logger.warning(
