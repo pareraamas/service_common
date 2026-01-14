@@ -53,6 +53,8 @@ class DatabaseProvider {
 
   Future<void> _runMigration() async {
     _logger.info('Checking for migrations in scripts/ directory...');
+    _logger.warning('SERVICE_COMMON VERSION = 2026-01-14-A');
+
     final dir = Directory('/app/scripts');
 
     if (!dir.existsSync()) {
