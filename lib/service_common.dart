@@ -9,4 +9,5 @@ export 'src/middleware/auth_middleware.dart';
 export 'src/middleware/request_id_middleware.dart';
 export 'src/middleware/request_logger_middleware.dart';
 export 'src/middleware/security_headers_middleware.dart';
+export 'src/middleware/tenant_middleware.dart';
 export 'src/utils/service_response.dart';
